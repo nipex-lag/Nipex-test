@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#050505">
+<title>NIPEX VIP</title>
+<style>
+    :root {
+        --red: #e62020;
+        --red-dark: #b31515;
+        --bg-color: #050505;
+        --input-bg: #0f0f0f;
+        --text-main: #ffffff;
+        --text-muted: #6b6b6b;
+        --border-color: #222222;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; }
+
+    body {
+        font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-main);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100dvh;
+        overflow: hidden;
+    }
+
+    .app-container {
+        position: relative;
+        width: 100%;
+        max-width: 420px;
+        height: 100dvh;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .view { display: none; flex-direction: column; height: 100%; }
+    .view.active { display: flex; animation: fadeIn 0.3s ease both; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* ================= LOGIN LAYOUT ================= */
+    #loginView { justify-content: space-between; padding: 4vh 0 3vh 0; }
+
+    /* লোগো ইমেজ */
+    .login-logo {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .login-logo img {
+        width: 100%;
+        max-width: 250px;
+        height: auto;
+        object-fit: contain;
+        filter: drop-shadow(0 0 15px rgba(230, 32, 32, 0.2));
+    }
+
+    .subtitle {
+        color: var(--text-muted);
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin-top: 15px;
+    }
+
+    /* ফর্ম সেকশন */
+    .login-form { width: 100%; }
+    
+    .input-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-muted);
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+    }
+    
+    .input-label::before {
+        content: "";
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        background-color: var(--red);
+    }
+
+    /* ইনপুট ফিল্ড (পেস্ট বাটন ছাড়া) */
+    .input-group {
+        display: flex;
+        align-items: center;
+        background: var(--input-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        margin-bottom: 15px;
+        transition: border-color 0.2s;
+    }
+    .input-group:focus-within {
+        border-color: var(--red);
+    }
+
+    .input-group input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        outline: none;
+        color: var(--text-main);
+        padding: 16px 12px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        min-width: 0;
+    }
+    .input-group input::placeholder { color: #444; }
+
+    /* আনলক বাটন */
+    .btn-unlock {
+        width: 100%;
+        background: var(--red);
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 18px;
+        font-size: 1rem;
+        font-weight: 900;
+        letter-spacing: 2px;
+        cursor: pointer;
+        transition: transform 0.1s, background 0.2s;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(230, 32, 32, 0.2);
+    }
+    .btn-unlock:active { transform: scale(0.98); background: var(--red-dark); }
+
+    .error-msg {
+        display: none;
+        color: var(--red);
+        font-size: 0.7rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+    .error-msg.show { display: block; }
+
+    /* নিচের টেক্সট */
+    .footer-text {
+        text-align: center;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        line-height: 1.8;
+        font-weight: 600;
+    }
+    .footer-text span { display: block; color: #444; font-size: 0.65rem; margin-top: 5px;}
+
+    /* ================= DASHBOARD LAYOUT ================= */
+    .top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    .status {
+        color: #00ff88;
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 1px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .status .dot {
+        width: 8px; height: 8px; border-radius: 50%;
+        background: #00ff88; box-shadow: 0 0 8px #00ff88;
+    }
+    .logout-btn {
+        background: rgba(230, 32, 32, 0.1);
+        color: var(--red);
+        border: 1px solid rgba(230, 32, 32, 0.3);
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 0.6rem;
+        font-weight: 800;
+        letter-spacing: 1px;
+        cursor: pointer;
+    }
+
+    /* ড্যাশবোর্ডে গোল লোগো */
+    .dashboard-logo {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 15px;
+    }
+    .dashboard-logo img {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--red);
+        box-shadow: 0 0 15px rgba(230, 32, 32, 0.3);
+        background-color: #000;
+    }
+
+    .scroll-content {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        scrollbar-width: none;
+        padding-bottom: 10px;
+    }
+    .scroll-content::-webkit-scrollbar { display: none; }
+
+    .pane { display: none; }
+    .pane.active { display: block; animation: fadeIn 0.3s ease both; }
+
+    /* কার্ড স্টাইল */
+    .key-card {
+        background: var(--input-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 15px;
+        text-align: center;
+        margin-bottom: 15px;
+    }
+    .key-label {
+        display: block;
+        font-size: 0.55rem;
+        font-weight: 800;
+        color: var(--text-muted);
+        letter-spacing: 2px;
+        margin-bottom: 8px;
+    }
+    .key-value {
+        font-family: monospace;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--red);
+        letter-spacing: 1px;
+    }
+
+    /* দরকারি লিংক */
+    .quick-links {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+    .link-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: var(--input-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 15px 10px;
+        text-decoration: none;
+        color: #fff;
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-align: center;
+        transition: background 0.2s;
+    }
+    .link-btn:active { background: #1a1a1a; }
+    .link-btn svg { width: 24px; height: 24px; color: var(--red); }
+
+    /* সেটিংস লিস্ট */
+    .set-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        padding: 14px;
+        background: var(--input-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        margin-bottom: 10px;
+        color: #fff;
+        text-decoration: none;
+        cursor: pointer;
+    }
+    .set-item:active { background: #1a1a1a; }
+    .set-icon {
+        width: 36px; height: 36px;
+        background: rgba(230, 32, 32, 0.1);
+        border-radius: 8px;
+        display: grid; place-items: center;
+        color: var(--red);
+    }
+    .set-body { flex: 1; text-align: left; }
+    .set-title { font-size: 0.75rem; font-weight: 800; display: block; }
+    .set-sub { font-size: 0.6rem; color: var(--text-muted); display: block; margin-top: 3px; }
+
+    /* বটম নেভিগেশন */
+    .nav-bar {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+        background: var(--input-bg);
+        padding: 6px;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+    }
+    .nav-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px;
+        background: transparent;
+        border: none;
+        border-radius: 8px;
+        color: var(--text-muted);
+        font-size: 0.65rem;
+        font-weight: 800;
+        cursor: pointer;
+    }
+    .nav-btn svg { width: 18px; height: 18px; }
+    .nav-btn.active {
+        background: rgba(230, 32, 32, 0.1);
+        color: var(--red);
+    }
+</style>
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- ============ LOGIN VIEW ============ -->
+    <section id="loginView" class="view active">
+
+        <!-- লোগো ইমেজ -->
+        <div class="login-logo">
+            <img src="https://image.zaw-myo.workers.dev/image/b89014db-4a34-4d57-b464-3664f5e4d3d0" alt="NIPEX VIP Logo">
+            <p class="subtitle">No Account. No Password. Just Your Key.</p>
+        </div>
+
+        <!-- ইনপুট এবং বাটন -->
+        <div class="login-form">
+            <form onsubmit="event.preventDefault(); login();">
+                
+                <label class="input-label" for="accessKey">ACCESS KEY</label>
+                
+                <div class="input-group">
+                    <input type="text" id="accessKey" placeholder="NIPEX-XXXX-XXXX-XXXX" autocomplete="off" spellcheck="false">
+                </div>
+                
+                <div class="error-msg" id="errorMsg"></div>
+
+                <button type="submit" class="btn-unlock" id="unlockBtn">UNLOCK</button>
+            </form>
+
+            <div class="footer-text">
+                no key? contact your seller.
+                <span>your time starts when you connect.</span>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- ============ DASHBOARD VIEW ============ -->
+    <section id="dashView" class="view">
+
+        <div class="top-bar">
+            <span class="status"><i class="dot"></i> ONLINE</span>
+            <button class="logout-btn" onclick="logout()">LOGOUT</button>
+        </div>
+
+        <!-- ড্যাশবোর্ডে গোল লোগো -->
+        <div class="dashboard-logo">
+            <img src="https://image.zaw-myo.workers.dev/image/b89014db-4a34-4d57-b464-3664f5e4d3d0" alt="NIPEX VIP Logo">
+        </div>
+
+        <div class="scroll-content">
+
+            <!-- ===== HOME PANE ===== -->
+            <div id="homePane" class="pane active">
+
+                <div class="key-card">
+                    <span class="key-label">YOUR ACCESS KEY</span>
+                    <span class="key-value" id="displayKey">—</span>
+                </div>
+
+                <div class="quick-links">
+                    <a href="https://play.google.com/store/apps/details?id=com.happproxy" target="_blank" class="link-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+                        Happ App
+                    </a>
+                    <a href="https://t.me/+imz42SI4m3c5ZTll" target="_blank" class="link-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 3.2 2.9 10.4c-.9.35-.87 1.62.04 1.93l4.6 1.55 1.75 5.35c.26.8 1.3.96 1.8.27l2.4-3.3 4.6 3.4c.7.52 1.7.14 1.87-.72l3-14.1c.2-.94-.73-1.75-1.46-1.53Z"/></svg>
+                        Telegram
+                    </a>
+                </div>
+
+                <button class="btn-unlock" id="subBtn" onclick="addSubscription(this)" style="margin-bottom:0;">
+                    ADD SUBSCRIPTION
+                </button>
+
+            </div>
+
+            <!-- ===== SETTINGS PANE ===== -->
+            <div id="settingsPane" class="pane">
+
+                <button class="set-item" onclick="copyKey()">
+                    <div class="set-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    </div>
+                    <div class="set-body">
+                        <span class="set-title">Copy Access Key</span>
+                        <span class="set-sub" id="copyStatus">Tap to copy</span>
+                    </div>
+                </button>
+
+                <button class="set-item" onclick="logout()">
+                    <div class="set-icon" style="color: var(--red); background: rgba(230,32,32,0.1);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+                    </div>
+                    <div class="set-body">
+                        <span class="set-title" style="color: var(--red);">Logout</span>
+                        <span class="set-sub">Clear session</span>
+                    </div>
+                </button>
+
+            </div>
+
+        </div>
+
+        <!-- Bottom navigation -->
+        <nav class="nav-bar">
+            <button class="nav-btn active" id="navHome" onclick="showTab('home')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V9.5"/><path d="M9.5 21v-6h5v6"/></svg>
+                Home
+            </button>
+            <button class="nav-btn" id="navSettings" onclick="showTab('settings')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-6M4 9V3M12 21v-9M12 6V3M20 21v-4M20 11V3"/><path d="M1.5 15h5M9.5 6h5M17.5 17h5"/></svg>
+                Settings
+            </button>
+        </nav>
+
+    </section>
+
+</div>
+
+<script>
+    /* ================= CONFIG ================= */
+    const VALID_KEY    = 'NIPEX-VIP';
+    const targetUrl    = 'http://m1nx.shop/aim.json';
+    const STORAGE_KEY  = 'm1nx_vip_access';
+    const HAPP_PACKAGE = 'com.happproxy';
+    const TELEGRAM_LINK = 'https://t.me/+imz42SI4m3c5ZTll';
+
+    /* ================= ELEMENTS ================= */
+    const loginView    = document.getElementById('loginView');
+    const dashView     = document.getElementById('dashView');
+    const keyInput     = document.getElementById('accessKey');
+    const errorMsg     = document.getElementById('errorMsg');
+    const displayKey   = document.getElementById('displayKey');
+    const homePane     = document.getElementById('homePane');
+    const settingsPane = document.getElementById('settingsPane');
+    const navHome      = document.getElementById('navHome');
+    const navSettings  = document.getElementById('navSettings');
+    const copyStatus   = document.getElementById('copyStatus');
+
+    /* ================= LOGIN LOGIC ================= */
+    function login(){
+        const key = keyInput.value.trim();
+
+        // যদি খালি থাকে
+        if(!key){
+            showError('PLEASE ENTER YOUR ACCESS KEY');
+            return;
+        }
+
+        // যদি কি সঠিক থাকে
+        if(key.toUpperCase() === VALID_KEY || key.toUpperCase() === 'NIPEX-XXXX-XXXX-XXXX' || key.toUpperCase() === 'AMHK-XXXX-XXXX-XXXX'){
+            errorMsg.classList.remove('show');
+            document.getElementById('unlockBtn').textContent = 'VERIFYING...';
+
+            setTimeout(() => {
+                document.getElementById('unlockBtn').textContent = 'UNLOCK';
+                try { localStorage.setItem(STORAGE_KEY, '1'); } catch(e){}
+                openDashboard(key.toUpperCase());
+            }, 500);
+        } 
+        // যদি কি ভুল থাকে -> সরাসরি টেলিগ্রামে নিয়ে যাবে
+        else {
+            showError('INVALID KEY — REDIRECTING TO TELEGRAM...');
+            keyInput.value = '';
+            
+            setTimeout(() => {
+                window.location.href = TELEGRAM_LINK;
+                errorMsg.classList.remove('show');
+            }, 1000);
+        }
+    }
+
+    function showError(msg){
+        errorMsg.textContent = msg;
+        errorMsg.classList.add('show');
+    }
+
+    keyInput.addEventListener('input', () => errorMsg.classList.remove('show'));
+
+    function openDashboard(key){
+        displayKey.textContent = key;
+        showTab('home');
+        loginView.classList.remove('active');
+        dashView.classList.add('active');
+    }
+
+    /* ================= LOGOUT ================= */
+    function logout(){
+        try { localStorage.removeItem(STORAGE_KEY); } catch(e){}
+        keyInput.value = '';
+        dashView.classList.remove('active');
+        loginView.classList.add('active');
+    }
+
+    /* ================= TAB SWITCHING ================= */
+    function showTab(tab){
+        const isHome = tab === 'home';
+        homePane.classList.toggle('active', isHome);
+        settingsPane.classList.toggle('active', !isHome);
+        navHome.classList.toggle('active', isHome);
+        navSettings.classList.toggle('active', !isHome);
+        document.querySelector('.scroll-content').scrollTop = 0;
+    }
+
+    /* ================= COPY KEY ================= */
+    function copyKey(){
+        const key = displayKey.textContent.trim();
+        navigator.clipboard.writeText(key).then(() => {
+            copyStatus.textContent = '✔ Copied to clipboard';
+            copyStatus.style.color = '#00ff88';
+            setTimeout(() => {
+                copyStatus.textContent = 'Tap to copy';
+                copyStatus.style.color = '';
+            }, 2000);
+        });
+    }
+
+    /* ================= ADD SUBSCRIPTION ================= */
+    function addSubscription(btn){
+        const original = btn.textContent;
+        btn.textContent = 'OPENING HAPP...';
+        btn.disabled = true;
+
+        const happLink   = 'happ://add/' + targetUrl;
+        const intentLink = 'intent://add/' + targetUrl + '#Intent;scheme=happ;package=' + HAPP_PACKAGE + ';end;';
+
+        let appOpened = false;
+        document.addEventListener('visibilitychange', function handler(){
+            if(document.hidden) appOpened = true;
+        }, { once:true });
+
+        window.location.href = happLink;
+
+        setTimeout(() => {
+            if(!appOpened && !document.hidden){
+                window.location.href = intentLink;
+            }
+        }, 1000);
+
+        setTimeout(() => {
+            btn.textContent = original;
+            btn.disabled = false;
+        }, 2500);
+    }
+
+    /* ================= AUTO LOGIN ================= */
+    (function autoLogin(){
+        try {
+            if(localStorage.getItem(STORAGE_KEY) === '1'){
+                openDashboard(VALID_KEY);
+            }
+        } catch(e){}
+    })();
+</script>
+
+</body>
+</html>
